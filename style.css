@@ -1498,3 +1498,47 @@ body.modal-open {
     width: 100%;
   }
 }
+
+.changelog-card {
+  scroll-margin-top: 24px;
+  overflow: hidden;
+}
+
+.changelog-card.spotlight {
+  border-color: var(--accent-bright);
+  animation: changelogPulse 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.changelog-card.spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 20%, rgba(0, 210, 190, 0.16) 50%, transparent 80%);
+  transform: translateX(-120%);
+  animation: changelogSweep 1.15s 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes changelogPulse {
+  0% {
+    border-color: var(--accent-bright);
+    outline: 2px solid rgba(0, 210, 190, 0.65);
+    outline-offset: 0px;
+  }
+  35% {
+    border-color: var(--accent-bright);
+    outline: 2px solid rgba(0, 210, 190, 0.45);
+    outline-offset: 5px;
+  }
+  100% {
+    border-color: var(--border);
+    outline: 2px solid transparent;
+    outline-offset: 8px;
+  }
+}
+
+@keyframes changelogSweep {
+  to {
+    transform: translateX(120%);
+  }
+}
