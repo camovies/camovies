@@ -3,7 +3,7 @@
   const REPO_NAME = 'camovies';
   const STREAM_PROXY_URL = 'https://YOUR_CLOUDFLARE_WORKER_URL/public/apk-stream';
   const CACHE_KEY = 'ca_release_hub_cache_v1';
-  const CACHE_TTL = 5 * 60 * 1000;
+  const CACHE_TTL = 60 * 1000;
   const RING_CIRCUMFERENCE = 2 * Math.PI * 88;
 
   const I18N = {
