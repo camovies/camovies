@@ -300,51 +300,94 @@
     ];
   }
 
+  function getMetaProxyUrl() {
+    if (!hasValidProxy()) return '';
+    return STREAM_PROXY_URL.replace(/\/apk-stream\/?$/, '/releases-meta');
+  }
+
+  async function fetchReleasesList() {
+    const endpoints = [];
+    const proxyMeta = getMetaProxyUrl();
+    if (proxyMeta) endpoints.push(proxyMeta);
+    endpoints.push(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=30`);
+
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(endpoint, {
+          headers: endpoint.includes('api.github.com')
+            ? { Accept: 'application/vnd.github+json' }
+            : {}
+        });
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (!Array.isArray(data)) continue;
+        const stable = data.filter((r) => !r.draft && !r.prerelease);
+        if (stable.length > 0) return stable;
+        const nonDraft = data.filter((r) => !r.draft);
+        if (nonDraft.length > 0) return nonDraft;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  async function fetchReadmeText() {
+    const urls = [
+      `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/README.md`,
+      `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/master/README.md`
+    ];
+    for (const url of urls) {
+      try {
+        const res = await fetch(url);
+        if (res.ok) return await res.text();
+      } catch (_) {}
+    }
+    return '';
+  }
+
   async function fetchRepoData() {
+    let staleBackup = null;
     try {
-      const cachedRaw = sessionStorage.getItem(CACHE_KEY);
+      const cachedRaw = localStorage.getItem(CACHE_KEY);
       if (cachedRaw) {
         const cached = JSON.parse(cachedRaw);
-        if (cached && Date.now() - cached.savedAt < CACHE_TTL && Array.isArray(cached.releases) && cached.releases.length > 0) {
-          state.releases = cached.releases;
-          state.readmeChangelog = cached.readmeChangelog || { mz: [], en: [] };
-          renderAll();
-          return;
+        const hasRealReleases = cached && Array.isArray(cached.releases) && cached.releases.length > 0 && !cached.releases[0].isFallback;
+        if (hasRealReleases) {
+          staleBackup = cached;
+          if (Date.now() - cached.savedAt < CACHE_TTL) {
+            state.releases = cached.releases;
+            state.readmeChangelog = cached.readmeChangelog || { mz: [], en: [] };
+            renderAll();
+            return;
+          }
         }
       }
     } catch (_) {}
 
-    const releasesReq = fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=30`, {
-      headers: { Accept: 'application/vnd.github+json' }
-    });
+    const [releases, readmeText] = await Promise.all([
+      fetchReleasesList(),
+      fetchReadmeText()
+    ]);
 
-    const readmeReq = fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/readme`, {
-      headers: { Accept: 'application/vnd.github.raw+json' }
-    }).then((res) => (res.ok ? res.text() : fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/README.md`).then((r) => (r.ok ? r.text() : ''))));
-
-    const [relResult, readmeResult] = await Promise.allSettled([releasesReq, readmeReq]);
-
-    if (readmeResult.status === 'fulfilled' && readmeResult.value) {
-      state.readmeChangelog = parseReadmeChangelog(readmeResult.value);
+    if (readmeText) {
+      state.readmeChangelog = parseReadmeChangelog(readmeText);
+    } else if (staleBackup && staleBackup.readmeChangelog) {
+      state.readmeChangelog = staleBackup.readmeChangelog;
     }
 
-    if (relResult.status === 'fulfilled' && relResult.value.ok) {
-      const data = await relResult.value.json();
-      const valid = Array.isArray(data)
-        ? data.filter((r) => !r.draft && !r.prerelease)
-        : [];
-      state.releases = valid.length > 0 ? valid : buildFallbackRelease();
+    if (releases && releases.length > 0) {
+      state.releases = releases;
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          releases: state.releases,
+          readmeChangelog: state.readmeChangelog
+        }));
+      } catch (_) {}
+    } else if (staleBackup) {
+      state.releases = staleBackup.releases;
     } else {
       state.releases = buildFallbackRelease();
     }
-
-    try {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
-        savedAt: Date.now(),
-        releases: state.releases,
-        readmeChangelog: state.readmeChangelog
-      }));
-    } catch (_) {}
 
     renderAll();
   }
