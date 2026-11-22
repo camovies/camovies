@@ -2,6 +2,11 @@
   <h1>🎬 CA Movies</h1>
   <p><b>Watch Movies & Series — Mizo Dubbed & Subtitled</b></p>
   <p>
+    <a href="https://github.com/camovies/camovies/releases/latest">
+      <img src="https://img.shields.io/github/v/release/camovies/camovies?label=Latest%20Version&color=00857c&style=for-the-badge" alt="Latest Version" />
+    </a>
+  </p>
+  <p>
     <a href="#mizo"><b>Mizo</b></a> • 
     <a href="#english"><b>English</b></a>
   </p>
@@ -11,11 +16,11 @@
 
 ## Mizo
 
-### 📥 CA Movies APK Download-na (Latest: v1.0.8)
+### 📥 CA Movies APK Download-na &nbsp; [![Latest](https://img.shields.io/github/v/release/camovies/camovies?label=Latest&color=00857c&style=flat-square)](https://github.com/camovies/camovies/releases/latest)
 A hnuaia mi-ah hian i phone mil tur hmet la, download rawh:
 
-- 🚀 **[Download for New Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/download/v1.0.8/app-arm64-v8a-release.apk)**
-- 📱 **[Download for Older Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/download/v1.0.8/app-armeabi-v7a-release.apk)**
+- 🚀 **[Download for New Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/latest/download/app-arm64-v8a-release.apk)**
+- 📱 **[Download for Older Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/latest/download/app-armeabi-v7a-release.apk)**
 
 ### ✨ Thil Thar Awmte
 - Bug hriat theih chin siam ṭhat a ni.
@@ -39,11 +44,11 @@ Harsatna i neih emaw, zawh duh i neih chuan a hnuaia button hmet hian kan Suppor
 
 ## English
 
-### 📥 Download CA Movies APK (Latest: v1.0.8)
+### 📥 Download CA Movies APK &nbsp; [![Latest](https://img.shields.io/github/v/release/camovies/camovies?label=Latest&color=00857c&style=flat-square)](https://github.com/camovies/camovies/releases/latest)
 Click the one that matches your device below and download it:
 
-- 🚀 **[Download for Modern Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/download/v1.0.8/app-arm64-v8a-release.apk)**
-- 📱 **[Download for Older 32-bit Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/download/v1.0.8/app-armeabi-v7a-release.apk)**
+- 🚀 **[Download for Modern Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/latest/download/app-arm64-v8a-release.apk)**
+- 📱 **[Download for Older 32-bit Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/latest/download/app-armeabi-v7a-release.apk)**
 
 ### ✨ What's New
 - Fixed known bugs.
