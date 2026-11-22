@@ -1,7 +1,7 @@
 (() => {
   const REPO_OWNER = 'camovies';
   const REPO_NAME = 'camovies';
-  const STREAM_PROXY_URL = 'https://YOUR_CLOUDFLARE_WORKER_URL/public/apk-stream';
+  const STREAM_PROXY_URL = 'https://ca-movies-api.camoviesmizo.workers.dev/public/apk-stream';
   const CACHE_KEY = 'ca_release_hub_cache_v1';
   const CACHE_TTL = 60 * 1000;
   const RING_CIRCUMFERENCE = 2 * Math.PI * 88;
@@ -934,12 +934,17 @@
 
       const blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
       state.blobUrl = URL.createObjectURL(blob);
+      const verSlug = (release.tag_name || 'latest').replace(/[^a-zA-Z0-9._-]/g, '');
+      const archSlug = /arm64|v8a/i.test(asset.name || '')
+        ? 'arm64'
+        : (/armeabi|v7a/i.test(asset.name || '') ? 'armeabi' : 'android');
+      const saveName = `CA-Movies-${verSlug}-${archSlug}.apk`;
       els.reactorDirectLink.href = state.blobUrl;
-      els.reactorDirectLink.download = asset.name || 'CA-Movies.apk';
+      els.reactorDirectLink.download = saveName;
 
       state.abortController = null;
       setReactorUiState('success', t('titleSuccess'), t('subSuccess'));
-      triggerFileSave(state.blobUrl, asset.name);
+      triggerFileSave(state.blobUrl, saveName);
     } catch (err) {
       if (err && err.name === 'AbortError') return;
       state.abortController = null;
