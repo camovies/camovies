@@ -118,7 +118,9 @@
     activeAsset: null,
     abortController: null,
     blobUrl: null,
-    downloadState: 'idle'
+    downloadState: 'idle',
+    downloadState: 'idle',
+    hasFocusedHash: false
   };
 
   const els = {
@@ -580,6 +582,7 @@
     renderVersionMenu();
     renderDownloadDeck(release);
     renderChangelog(release);
+    focusChangelogIfRequested(false);
   }
 
   class ReactorCanvasEngine {
@@ -996,6 +999,30 @@
       reactor.resize();
     }
   });
+
+  function focusChangelogIfRequested(force) {
+    const hash = window.location.hash.toLowerCase();
+    const params = new URLSearchParams(window.location.search);
+    const wantsChangelog = hash === '#changelog' || params.get('section') === 'changelog';
+    if (!wantsChangelog) return;
+    if (!force && state.hasFocusedHash) return;
+
+    const card = document.getElementById('changelog');
+    if (!card) return;
+
+    state.hasFocusedHash = true;
+    requestAnimationFrame(() => {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.remove('spotlight');
+      void card.offsetWidth;
+      card.classList.add('spotlight');
+      setTimeout(() => {
+        card.classList.remove('spotlight');
+      }, 2500);
+    });
+  }
+
+  window.addEventListener('hashchange', () => focusChangelogIfRequested(true));
 
   els.yearNow.textContent = String(new Date().getFullYear());
   applyStaticTranslations();
