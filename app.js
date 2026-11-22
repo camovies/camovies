@@ -1,7 +1,7 @@
 (() => {
   const REPO_OWNER = 'camovies';
   const REPO_NAME = 'camovies';
-  const STREAM_PROXY_URL = 'https://ca-movies-api.camoviesmizo.workers.dev/public/apk-stream';
+  const STREAM_PROXY_URL = 'https://camovies-dl.camoviesmizo.workers.dev/apk-stream';
   const CACHE_KEY = 'ca_release_hub_cache_v1';
   const CACHE_TTL = 60 * 1000;
   const RING_CIRCUMFERENCE = 2 * Math.PI * 88;
