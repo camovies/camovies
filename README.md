@@ -11,15 +11,14 @@
 
 ## Mizo
 
-### 📥 CA Movies APK Download-na (Latest: v1.0.5)
+### 📥 CA Movies APK Download-na (Latest: v1.0.6)
 A hnuaia mi-ah hian i phone mil tur hmet la, download rawh:
 
-- 🚀 **[Download for New Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/download/v1.0.5/app-arm64-v8a-release.apk)**
-- 📱 **[Download for Older Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/download/v1.0.5/app-armeabi-v7a-release.apk)**
+- 🚀 **[Download for New Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/download/v1.0.6/app-arm64-v8a-release.apk)**
+- 📱 **[Download for Older Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/download/v1.0.6/app-armeabi-v7a-release.apk)**
 
 ### ✨ Thil Thar Awmte
-- Zawhna leh Harsatna tlang lawn hrilh fiahna turin Menu-ah FAQ dah a ni.
-- Video play theih a nih loh a, private dns hmang tura tihna a lan hunah, private dns hman dan chiang zawka hrilh fiahna dah a ni.
+- Bug hriat theih chin siam ṭhat a ni.
 
 ### 💬 Support Group
 Harsatna i neih emaw, zawh duh i neih chuan a hnuaia button hmet hian kan Support Group-ah i lo zawm thei ang:
@@ -40,15 +39,14 @@ Harsatna i neih emaw, zawh duh i neih chuan a hnuaia button hmet hian kan Suppor
 
 ## English
 
-### 📥 Download CA Movies APK (Latest: v1.0.5)
+### 📥 Download CA Movies APK (Latest: v1.0.6)
 Click the one that matches your device below and download it:
 
-- 🚀 **[Download for Modern Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/download/v1.0.5/app-arm64-v8a-release.apk)**
-- 📱 **[Download for Older 32-bit Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/download/v1.0.5/app-armeabi-v7a-release.apk)**
+- 🚀 **[Download for Modern Phones (arm64-v8a)](https://github.com/camovies/camovies/releases/download/v1.0.6/app-arm64-v8a-release.apk)**
+- 📱 **[Download for Older 32-bit Phones (armeabi-v7a)](https://github.com/camovies/camovies/releases/download/v1.0.6/app-armeabi-v7a-release.apk)**
 
 ### ✨ What's New
-- Added an FAQ section to the Menu to answer common questions and help resolve frequent issues.
-- Added a clearer step-by-step guide on how to set up Private DNS directly inside the video error prompt whenever Private DNS is needed.
+- Fixed known bugs.
 
 ### 💬 Support Group
 Need help or have questions? Tap a button below to join our Support Group:
