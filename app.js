@@ -1,6 +1,7 @@
 (() => {
   const REPO_OWNER = 'camovies';
   const REPO_NAME = 'camovies';
+  const STREAM_PROXY_URL = 'https://YOUR_CLOUDFLARE_WORKER_URL/public/apk-stream';
   const CACHE_KEY = 'ca_release_hub_cache_v1';
   const CACHE_TTL = 5 * 60 * 1000;
   const RING_CIRCUMFERENCE = 2 * Math.PI * 88;
@@ -9,47 +10,47 @@
     mz: {
       brandTag: 'Official APK Download-na',
       heroTitle: 'CA Movies APK Download-na',
-      heroDesc: 'Mizo Dubbed leh Subtitled Movie & Series te felfai leh muang lo taka enna official Android app.',
+      heroDesc: 'Mizo Dubbed leh Subtitled Movie & Series-te enna official Android app.',
       versionLabel: 'Version',
-      latestTag: 'Thar Ber',
-      archiveTag: 'Version Hlui',
+      latestTag: 'Thar ber',
+      archiveTag: 'Version hlui',
       metaPlatform: 'Platform',
-      metaUpdated: 'Chhuah Ni',
-      metaDownloads: 'Download Zat',
-      selectBuild: 'I Phone Mil Tur Thlang Rawh',
-      detectModern: 'I phone atan Modern (arm64-v8a) a fuh ber ang',
-      recommended: 'Fuh Ber',
-      modernTitle: 'Phone Thar Tan',
-      modernSub: '64-bit Android phone (2018 hnu lam)',
-      olderTitle: 'Phone Hlui Tan',
+      metaUpdated: 'Chhuah ni',
+      metaDownloads: 'Download zat',
+      selectBuild: 'I Phone mil tur thlang rawh',
+      detectModern: 'Tunlai phone tlanglawn (arm64-v8a)',
+      recommended: 'Fuh ber',
+      modernTitle: 'Tunlai phone tlanglawn tan',
+      modernSub: '64-bit Android phone',
+      olderTitle: 'Phone chhuak hlui lam tan',
       olderSub: '32-bit Android phone hlui lam tan',
-      universalTitle: 'Android Phone Zawng Zawng',
+      universalTitle: 'Android phone zawng zawng',
       universalSub: 'Universal APK package',
-      downloadBtn: 'Download Rawh',
+      downloadBtn: 'Download',
       changelogTitle: 'Changelog',
       changelogEmpty: 'He version tan hian changelog ziah luh a awm rih lo.',
-      installGuide: 'A khawi zawk nge thlan tur i hriat loh chuan Phone Thar Tan (arm64-v8a) hi hmang hmasa la; a in-install theih loh chauhvin Phone Hlui Tan (armeabi-v7a) download rawh.',
+      installGuide: 'A khawi zawk nge thlan tur i hriat loh chuan Tunlai phone tlanglawn tan (arm64-v8a) hi hmang hmasa la; a in-install theih loh chauhvin Phone chhuak hlui lam tan (armeabi-v7a) download rawh.',
       supportTitle: 'Support Group',
       supportBadge: 'Ṭanpuina',
-      supportDesc: 'Harsatna i neih emaw, zawh duh i neih chuan a hnuaia kan Support Group-ah lo zawm ve rawh.',
-      joinGroup: 'Group Zawmna',
+      supportDesc: 'Harsatna i neih emaw, zawh duh i neih chuan a hnuaia kan Support Group hi lo join rawh.',
+      joinGroup: 'Join',
       allReleasesLink: 'GitHub Releases',
-      btnCancel: 'Tihtawpna',
-      btnRetry: 'Ti Ṭha Leh Rawh',
-      btnDirect: 'Direct Download',
+      btnCancel: 'Cancel',
+      btnRetry: 'Tih Ṭhatna',
+      btnDirect: 'Save Nawnna',
       btnDone: 'Zo Ta',
-      stageConnect: 'Release server a zawm mek...',
-      stageVerify: 'APK package himna a enfiah mek...',
-      stagePrepare: 'Download stream a buatsaih mek...',
-      stageDispatch: 'I phone-ah download a ṭan mek...',
-      titleActive: 'A Buatsaih Mek',
-      titleSuccess: 'Download A Ṭan Ta!',
-      subSuccess: 'I browser download bar-ah a in-download mek. A inṭan loh chuan Direct Download hmet rawh.',
-      titleCancelled: 'Download Tihtawp A Ni',
-      subCancelled: 'Download lai i titawp a, i duh hunah i ti ṭha leh thei.',
-      titleError: 'Download A Fail',
-      errOffline: 'Internet connection a awm lo. I data emaw Wi-Fi enfiah la ti ṭha leh rawh.',
-      errNetwork: 'Server nena inzawmna a hlawhchham. Reilote hnuah ti ṭha leh rawh.',
+      stageConnect: 'Release server biak mek a ni...',
+      stageStreaming: 'APK file a in-download mek...',
+      stageSaving: 'I phone-ah APK a in-save mek...',
+      titleActive: 'A in-download Mek',
+      titleSuccess: 'Download A Zo Ta',
+      subSuccess: 'APK file chu i phone Downloads-ah a in-save fel tawh e. Install nghal theih a ni.',
+      subDirectFallback: 'I browser download bar-ah a in-download mek.',
+      titleCancelled: 'Download tih tawp a ni',
+      subCancelled: 'Download lai i ti tawp a, i duh hunah i ti ṭha leh thei.',
+      titleError: 'Download theih loh',
+      errOffline: 'Internet connection a awm lo. I data emaw, Wi-Fi en fiah la ti ṭha leh rawh.',
+      errNetwork: 'Download laiin connection a chat emaw, server-ah harsatna a awm. Ti ṭha leh rawh.',
       errMissing: 'He version-ah hian APK file hmuh a ni lo.',
       noAssets: 'He release-ah hian download tur APK a la awm lo.',
       sourceReadme: 'README.md',
@@ -58,8 +59,8 @@
     },
     en: {
       brandTag: 'Official Release Hub',
-      heroTitle: 'Cinema in Your Pocket',
-      heroDesc: 'Stream Mizo Dubbed & Subtitled Movies and Series effortlessly on Android with fast playback and instant updates.',
+      heroTitle: 'Download CA Movies',
+      heroDesc: 'Stream Mizo Dubbed & Subtitled Movies and Series effortlessly on Android.',
       versionLabel: 'Version',
       latestTag: 'Latest',
       archiveTag: 'Archive',
@@ -70,7 +71,7 @@
       detectModern: 'Modern (arm64-v8a) is recommended for your device',
       recommended: 'Recommended',
       modernTitle: 'Modern Phones',
-      modernSub: '64-bit Android devices (2018 & newer)',
+      modernSub: '64-bit Android devices',
       olderTitle: 'Older 32-bit Phones',
       olderSub: 'Legacy 32-bit Android devices',
       universalTitle: 'Universal Build',
@@ -86,21 +87,21 @@
       allReleasesLink: 'GitHub Releases',
       btnCancel: 'Cancel',
       btnRetry: 'Try Again',
-      btnDirect: 'Direct Download',
+      btnDirect: 'Save Again',
       btnDone: 'Done',
       stageConnect: 'Connecting to release edge...',
-      stageVerify: 'Verifying APK package metadata...',
-      stagePrepare: 'Allocating binary stream...',
-      stageDispatch: 'Handing off package to browser...',
-      titleActive: 'Preparing Package',
-      titleSuccess: 'Download Started',
-      subSuccess: 'Your APK download is active in your browser. Tap Direct Download if it did not begin automatically.',
+      stageStreaming: 'Downloading APK package...',
+      stageSaving: 'Saving APK to your device...',
+      titleActive: 'Downloading APK',
+      titleSuccess: 'Download Complete',
+      subSuccess: 'APK has been saved directly to your device Downloads. Open it to install.',
+      subDirectFallback: 'Your browser has started downloading the APK.',
       titleCancelled: 'Download Cancelled',
-      subCancelled: 'Transfer was aborted before completion. You can restart anytime.',
+      subCancelled: 'Transfer was aborted and stopped. You can restart anytime.',
       titleError: 'Download Failed',
       errOffline: 'No internet connection detected. Check your network and try again.',
-      errNetwork: 'Could not reach the release server. Please retry in a moment.',
-      errMissing: 'The requested APK file could not be verified on this release.',
+      errNetwork: 'Transfer interrupted or server unreachable. Please try again.',
+      errMissing: 'The requested APK file could not be found on this release.',
       noAssets: 'No APK files found in this release.',
       sourceReadme: 'README.md',
       sourceRelease: 'Release Notes',
@@ -116,7 +117,7 @@
     readmeChangelog: { mz: [], en: [] },
     activeAsset: null,
     abortController: null,
-    downloadTimer: null,
+    blobUrl: null,
     downloadState: 'idle'
   };
 
@@ -158,10 +159,24 @@
     return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key;
   }
 
+  function hasValidProxy() {
+    return Boolean(STREAM_PROXY_URL && STREAM_PROXY_URL.startsWith('http') && !STREAM_PROXY_URL.includes('YOUR_CLOUDFLARE_WORKER_URL'));
+  }
+
   function formatBytes(bytes) {
-    if (!bytes || bytes <= 0) return '-- MB';
+    if (!bytes || bytes <= 0) return '0.0 MB';
     const mb = bytes / (1024 * 1024);
+    if (mb < 0.1) {
+      return `${(bytes / 1024).toFixed(0)} KB`;
+    }
     return `${mb.toFixed(1)} MB`;
+  }
+
+  function formatSpeed(bytesPerSec) {
+    if (!bytesPerSec || bytesPerSec <= 0) return '';
+    const mbps = bytesPerSec / (1024 * 1024);
+    if (mbps >= 1) return `${mbps.toFixed(1)} MB/s`;
+    return `${Math.round(bytesPerSec / 1024)} KB/s`;
   }
 
   function formatDate(iso) {
@@ -488,7 +503,7 @@
           <p class="dl-subtitle">${info.sub}</p>
         </div>
         <div class="dl-specs mono">
-          <span>${formatBytes(asset.size)}</span>
+          <span>${asset.size ? formatBytes(asset.size) : '-- MB'}</span>
           <span>${dlCountText}</span>
         </div>
         <button type="button" class="dl-btn">
@@ -740,7 +755,14 @@
 
   const reactor = new ReactorCanvasEngine(els.reactorCanvas);
 
-  function setReactorProgress(pct, totalBytes) {
+  function revokeActiveBlob() {
+    if (state.blobUrl) {
+      URL.revokeObjectURL(state.blobUrl);
+      state.blobUrl = null;
+    }
+  }
+
+  function setReactorProgress(pct, receivedBytes, totalBytes, speedText) {
     const clamped = Math.max(0, Math.min(100, pct));
     reactor.progress = clamped;
     const offset = RING_CIRCUMFERENCE * (1 - clamped / 100);
@@ -751,8 +773,12 @@
     els.reactorPct.textContent = String(Math.round(clamped));
 
     if (totalBytes && totalBytes > 0) {
-      const doneBytes = (totalBytes * clamped) / 100;
-      els.reactorStats.textContent = `${formatBytes(doneBytes)} / ${formatBytes(totalBytes)}`;
+      const sizeStr = `${formatBytes(receivedBytes)} / ${formatBytes(totalBytes)}`;
+      els.reactorStats.textContent = speedText ? `${sizeStr} • ${speedText}` : sizeStr;
+    } else if (receivedBytes && receivedBytes > 0) {
+      els.reactorStats.textContent = speedText
+        ? `${formatBytes(receivedBytes)} • ${speedText}`
+        : formatBytes(receivedBytes);
     } else {
       els.reactorStats.textContent = `${Math.round(clamped)}%`;
     }
@@ -778,6 +804,7 @@
     els.reactorVerBadge.textContent = release.tag_name || 'Latest';
     els.reactorFilename.textContent = asset.name || 'CA-Movies.apk';
     els.reactorDirectLink.href = asset.browser_download_url;
+    els.reactorDirectLink.download = asset.name || 'CA-Movies.apk';
 
     document.body.classList.add('modal-open');
     els.reactorOverlay.classList.add('open');
@@ -795,14 +822,15 @@
     setTimeout(() => {
       if (!els.reactorOverlay.classList.contains('open')) {
         reactor.stop();
+        revokeActiveBlob();
       }
     }, 300);
   }
 
-  function triggerBrowserDownload(url, filename) {
+  function triggerFileSave(url, filename) {
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename || '';
+    link.download = filename || 'CA-Movies.apk';
     link.rel = 'noopener noreferrer';
     document.body.appendChild(link);
     link.click();
@@ -814,112 +842,109 @@
       state.abortController.abort();
       state.abortController = null;
     }
-    if (state.downloadTimer) {
-      clearInterval(state.downloadTimer);
-      state.downloadTimer = null;
-    }
     if (state.downloadState === 'active') {
       setReactorUiState('cancelled', t('titleCancelled'), t('subCancelled'));
     }
   }
 
   async function startDownloadSequence(asset, release) {
-    if (state.downloadTimer) {
-      clearInterval(state.downloadTimer);
-      state.downloadTimer = null;
-    }
     if (state.abortController) {
       state.abortController.abort();
+      state.abortController = null;
     }
+    revokeActiveBlob();
 
     openReactorModal(asset, release);
-    setReactorProgress(0, asset.size);
+    setReactorProgress(0, 0, asset.size, '');
     setReactorUiState('active', t('titleActive'), t('stageConnect'));
 
     if (!navigator.onLine) {
-      setReactorProgress(12, asset.size);
       setReactorUiState('error', t('titleError'), t('errOffline'));
+      return;
+    }
+
+    if (!asset.browser_download_url) {
+      setReactorUiState('error', t('titleError'), t('errMissing'));
+      return;
+    }
+
+    if (!hasValidProxy()) {
+      setReactorProgress(100, asset.size || 0, asset.size || 0, '');
+      setReactorUiState('success', t('titleSuccess'), t('subDirectFallback'));
+      triggerFileSave(asset.browser_download_url, asset.name);
       return;
     }
 
     const controller = new AbortController();
     state.abortController = controller;
-    let progress = 4;
-    let verified = false;
-    let failedReason = null;
 
-    const verifyPromise = (async () => {
-      if (!asset.browser_download_url) {
-        throw new Error('missing');
+    try {
+      const streamUrl = `${STREAM_PROXY_URL}?url=${encodeURIComponent(asset.browser_download_url)}`;
+      const response = await fetch(streamUrl, {
+        method: 'GET',
+        signal: controller.signal
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error(response.status === 404 ? 'missing' : 'network');
       }
-      if (asset.url) {
-        const res = await fetch(asset.url, {
-          headers: { Accept: 'application/vnd.github+json' },
-          signal: controller.signal
-        });
-        if (!res.ok) {
-          throw new Error(res.status === 404 ? 'missing' : 'network');
+
+      const headerLen = parseInt(response.headers.get('Content-Length') || '0', 10);
+      const totalBytes = headerLen > 0 ? headerLen : (asset.size || 0);
+      const reader = response.body.getReader();
+      const chunks = [];
+      let receivedBytes = 0;
+      let lastSampleTime = performance.now();
+      let lastSampleBytes = 0;
+      let currentSpeed = 0;
+
+      els.reactorStatusSub.textContent = t('stageStreaming');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        receivedBytes += value.byteLength;
+
+        const now = performance.now();
+        const dt = (now - lastSampleTime) / 1000;
+        if (dt >= 0.25) {
+          const instantSpeed = (receivedBytes - lastSampleBytes) / dt;
+          currentSpeed = currentSpeed > 0 ? (currentSpeed * 0.6 + instantSpeed * 0.4) : instantSpeed;
+          lastSampleTime = now;
+          lastSampleBytes = receivedBytes;
         }
-        const meta = await res.json();
-        if (meta && meta.size && !asset.size) {
-          asset.size = meta.size;
-        }
+
+        const pct = totalBytes > 0
+          ? Math.min(99, (receivedBytes / totalBytes) * 100)
+          : Math.min(95, (receivedBytes / (40 * 1024 * 1024)) * 100);
+
+        setReactorProgress(pct, receivedBytes, totalBytes || receivedBytes, formatSpeed(currentSpeed));
       }
-      verified = true;
-    })().catch((err) => {
+
+      if (controller.signal.aborted) return;
+
+      els.reactorStatusSub.textContent = t('stageSaving');
+      const finalTotal = totalBytes || receivedBytes;
+      setReactorProgress(100, finalTotal, finalTotal, '');
+
+      const blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
+      state.blobUrl = URL.createObjectURL(blob);
+      els.reactorDirectLink.href = state.blobUrl;
+      els.reactorDirectLink.download = asset.name || 'CA-Movies.apk';
+
+      state.abortController = null;
+      setReactorUiState('success', t('titleSuccess'), t('subSuccess'));
+      triggerFileSave(state.blobUrl, asset.name);
+    } catch (err) {
       if (err && err.name === 'AbortError') return;
-      failedReason = err && err.message === 'missing' ? t('errMissing') : (!navigator.onLine ? t('errOffline') : t('errNetwork'));
-    });
-
-    state.downloadTimer = setInterval(() => {
-      if (state.downloadState !== 'active') {
-        clearInterval(state.downloadTimer);
-        state.downloadTimer = null;
-        return;
-      }
-
-      if (!navigator.onLine) {
-        clearInterval(state.downloadTimer);
-        state.downloadTimer = null;
-        controller.abort();
-        setReactorUiState('error', t('titleError'), t('errOffline'));
-        return;
-      }
-
-      if (failedReason) {
-        clearInterval(state.downloadTimer);
-        state.downloadTimer = null;
-        setReactorUiState('error', t('titleError'), failedReason);
-        return;
-      }
-
-      if (progress < 72 || verified) {
-        const step = progress < 35 ? 3.4 : progress < 75 ? 2.6 : 4.2;
-        progress = Math.min(verified ? 100 : 72, progress + step);
-      }
-
-      setReactorProgress(progress, asset.size);
-
-      if (progress < 30) {
-        els.reactorStatusSub.textContent = t('stageConnect');
-      } else if (progress < 62) {
-        els.reactorStatusSub.textContent = t('stageVerify');
-      } else if (progress < 90) {
-        els.reactorStatusSub.textContent = t('stagePrepare');
-      } else {
-        els.reactorStatusSub.textContent = t('stageDispatch');
-      }
-
-      if (progress >= 100 && verified) {
-        clearInterval(state.downloadTimer);
-        state.downloadTimer = null;
-        state.abortController = null;
-        setReactorUiState('success', t('titleSuccess'), t('subSuccess'));
-        triggerBrowserDownload(asset.browser_download_url, asset.name);
-      }
-    }, 65);
-
-    await verifyPromise;
+      state.abortController = null;
+      const errMsg = !navigator.onLine
+        ? t('errOffline')
+        : (err && err.message === 'missing' ? t('errMissing') : t('errNetwork'));
+      setReactorUiState('error', t('titleError'), errMsg);
+    }
   }
 
   els.langBtns.forEach((btn) => {
