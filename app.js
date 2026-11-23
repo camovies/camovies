@@ -314,6 +314,7 @@
     for (const endpoint of endpoints) {
       try {
         const res = await fetch(endpoint, {
+          cache: 'no-store',
           headers: endpoint.includes('api.github.com')
             ? { Accept: 'application/vnd.github+json' }
             : {}
@@ -337,7 +338,7 @@
     ];
     for (const url of urls) {
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { cache: 'no-store' });
         if (res.ok) return await res.text();
       } catch (_) {}
     }
