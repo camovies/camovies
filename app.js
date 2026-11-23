@@ -2,8 +2,8 @@
   const REPO_OWNER = 'camovies';
   const REPO_NAME = 'camovies';
   const STREAM_PROXY_URL = 'https://camovies-dl.camoviesmizo.workers.dev/apk-stream';
-  const CACHE_KEY = 'ca_release_hub_cache_v2';
-  const CACHE_TTL = 2 * 60 * 1000;
+  const CACHE_KEY = 'ca_release_hub_cache_v3';
+  const CACHE_TTL = 0;
   const RING_CIRCUMFERENCE = 2 * Math.PI * 88;
 
   const I18N = {
@@ -305,11 +305,23 @@
     return STREAM_PROXY_URL.replace(/\/apk-stream\/?$/, '/releases-meta');
   }
 
+  function isPageReload() {
+    try {
+      const nav = performance.getEntriesByType('navigation');
+      if (nav && nav.length > 0 && nav[0].type === 'reload') return true;
+    } catch (_) {}
+    return false;
+  }
+
   async function fetchReleasesList() {
+    const bust = Date.now();
+    const freshFlag = isPageReload() ? '&fresh=1' : '';
     const endpoints = [];
     const proxyMeta = getMetaProxyUrl();
-    if (proxyMeta) endpoints.push(proxyMeta);
-    endpoints.push(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=30`);
+    if (proxyMeta) {
+      endpoints.push(`${proxyMeta}?t=${bust}${freshFlag}`);
+    }
+    endpoints.push(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=30&t=${bust}`);
 
     for (const endpoint of endpoints) {
       try {
@@ -322,9 +334,16 @@
         if (!res.ok) continue;
         const data = await res.json();
         if (!Array.isArray(data)) continue;
-        const stable = data.filter((r) => !r.draft && !r.prerelease);
+
+        const sortNewest = (arr) => arr.sort((a, b) => {
+          const ta = Date.parse(a.published_at || a.created_at || 0) || 0;
+          const tb = Date.parse(b.published_at || b.created_at || 0) || 0;
+          return tb - ta;
+        });
+
+        const stable = sortNewest(data.filter((r) => !r.draft && !r.prerelease));
         if (stable.length > 0) return stable;
-        const nonDraft = data.filter((r) => !r.draft);
+        const nonDraft = sortNewest(data.filter((r) => !r.draft));
         if (nonDraft.length > 0) return nonDraft;
       } catch (_) {}
     }
@@ -332,9 +351,10 @@
   }
 
   async function fetchReadmeText() {
+    const bust = Date.now();
     const urls = [
-      `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/README.md`,
-      `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/master/README.md`
+      `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/README.md?t=${bust}`,
+      `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/master/README.md?t=${bust}`
     ];
     for (const url of urls) {
       try {
@@ -351,19 +371,18 @@
       const cachedRaw = localStorage.getItem(CACHE_KEY);
       if (cachedRaw) {
         const cached = JSON.parse(cachedRaw);
-        const hasRealReleases = cached && Array.isArray(cached.releases) && cached.releases.length > 0 && !cached.releases[0].isFallback;
+        const hasRealReleases =
+          cached &&
+          Array.isArray(cached.releases) &&
+          cached.releases.length > 0 &&
+          !cached.releases[0].isFallback;
         if (hasRealReleases) {
           staleBackup = cached;
-          if (Date.now() - cached.savedAt < CACHE_TTL) {
-            state.releases = cached.releases;
-            state.readmeChangelog = cached.readmeChangelog || { mz: [], en: [] };
-            renderAll();
-            return;
-          }
         }
       }
     } catch (_) {}
 
+    // Page luh thar emaw refresh apiangin live-in a thar ber a fetch ziah ang
     const [releases, readmeText] = await Promise.all([
       fetchReleasesList(),
       fetchReadmeText()
@@ -392,7 +411,7 @@
 
     renderAll();
   }
-
+  
   function applyStaticTranslations() {
     document.documentElement.lang = state.lang === 'mz' ? 'lus' : 'en';
     document.querySelectorAll('[data-i18n]').forEach((node) => {
