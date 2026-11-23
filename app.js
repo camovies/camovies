@@ -3,8 +3,8 @@
   const REPO_NAME = 'camovies';
   const STREAM_PROXY_URL = 'https://camovies-dl.camoviesmizo.workers.dev/apk-stream';
   const CACHE_KEY = 'ca_release_hub_cache_v3';
-  const CACHE_TTL = 0;
   const RING_CIRCUMFERENCE = 2 * Math.PI * 88;
+  const IS_TOUCH_DEVICE = window.matchMedia && window.matchMedia('(hover: none)').matches;
 
   const I18N = {
     mz: {
@@ -119,13 +119,15 @@
     abortController: null,
     blobUrl: null,
     downloadState: 'idle',
-    downloadState: 'idle',
-    hasFocusedHash: false
+    hasFocusedHash: false,
+    lastRenderSignature: ''
   };
 
   const els = {
     langBtns: document.querySelectorAll('[data-set-lang]'),
+    i18nNodes: document.querySelectorAll('[data-i18n]'),
     themeToggle: document.getElementById('themeToggle'),
+    metaTheme: document.querySelector('meta[name="theme-color"]'),
     releaseBadgeText: document.getElementById('releaseBadgeText'),
     versionPicker: document.getElementById('versionPicker'),
     versionTrigger: document.getElementById('versionTrigger'),
@@ -157,20 +159,25 @@
     reactorDoneBtn: document.getElementById('reactorDoneBtn')
   };
 
+  let progressRafId = null;
+  let pendingProgressFrame = null;
+
   function t(key) {
     return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key;
   }
 
   function hasValidProxy() {
-    return Boolean(STREAM_PROXY_URL && STREAM_PROXY_URL.startsWith('http') && !STREAM_PROXY_URL.includes('YOUR_CLOUDFLARE_WORKER_URL'));
+    return Boolean(
+      STREAM_PROXY_URL &&
+      STREAM_PROXY_URL.startsWith('http') &&
+      !STREAM_PROXY_URL.includes('YOUR_CLOUDFLARE_WORKER_URL')
+    );
   }
 
   function formatBytes(bytes) {
     if (!bytes || bytes <= 0) return '0.0 MB';
     const mb = bytes / (1024 * 1024);
-    if (mb < 0.1) {
-      return `${(bytes / 1024).toFixed(0)} KB`;
-    }
+    if (mb < 0.1) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${mb.toFixed(1)} MB`;
   }
 
@@ -313,6 +320,15 @@
     return false;
   }
 
+  function buildDataSignature(releases, readmeChangelog) {
+    const relSig = (releases || []).map((r) => {
+      const dlSum = (r.assets || []).reduce((acc, a) => acc + (a.download_count || 0), 0);
+      return `${r.tag_name || ''}:${r.published_at || ''}:${(r.assets || []).length}:${dlSum}`;
+    }).join('|');
+    const rmSig = `${(readmeChangelog.mz || []).join('~')}||${(readmeChangelog.en || []).join('~')}`;
+    return `${relSig}###${rmSig}`;
+  }
+
   async function fetchReleasesList() {
     const bust = Date.now();
     const freshFlag = isPageReload() ? '&fresh=1' : '';
@@ -382,39 +398,64 @@
       }
     } catch (_) {}
 
-    // Page luh thar emaw refresh apiangin live-in a thar ber a fetch ziah ang
+    // 0ms Instant First-Paint: cache a awm chuan skeleton nghak lovin tilang nghal zawk rawh
+    if (staleBackup) {
+      state.releases = staleBackup.releases;
+      state.readmeChangelog = staleBackup.readmeChangelog || { mz: [], en: [] };
+      state.lastRenderSignature = buildDataSignature(state.releases, state.readmeChangelog);
+      renderAll();
+    }
+
+    // Background-ah live-in a thar ber fetch nghal ziah rawh
     const [releases, readmeText] = await Promise.all([
       fetchReleasesList(),
       fetchReadmeText()
     ]);
 
+    let nextReadme = state.readmeChangelog;
     if (readmeText) {
-      state.readmeChangelog = parseReadmeChangelog(readmeText);
+      nextReadme = parseReadmeChangelog(readmeText);
     } else if (staleBackup && staleBackup.readmeChangelog) {
-      state.readmeChangelog = staleBackup.readmeChangelog;
+      nextReadme = staleBackup.readmeChangelog;
     }
 
+    let nextReleases = null;
     if (releases && releases.length > 0) {
-      state.releases = releases;
+      nextReleases = releases;
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
-          releases: state.releases,
-          readmeChangelog: state.readmeChangelog
+          releases: nextReleases,
+          readmeChangelog: nextReadme
         }));
       } catch (_) {}
     } else if (staleBackup) {
-      state.releases = staleBackup.releases;
+      nextReleases = staleBackup.releases;
     } else {
-      state.releases = buildFallbackRelease();
+      nextReleases = buildFallbackRelease();
     }
 
-    renderAll();
+    const nextSig = buildDataSignature(nextReleases, nextReadme);
+    if (!staleBackup || nextSig !== state.lastRenderSignature) {
+      const prevSelectedTag = state.releases[state.selectedIndex] && state.releases[state.selectedIndex].tag_name;
+      state.releases = nextReleases;
+      state.readmeChangelog = nextReadme;
+      state.lastRenderSignature = nextSig;
+
+      // User-in version hlui a lo thlan lai a nih chuan a position vawng, latest a nih chuan 0-ah dah
+      if (state.selectedIndex > 0 && prevSelectedTag) {
+        const keepIdx = state.releases.findIndex((r) => r.tag_name === prevSelectedTag);
+        state.selectedIndex = keepIdx >= 0 ? keepIdx : 0;
+      } else {
+        state.selectedIndex = 0;
+      }
+      renderAll();
+    }
   }
-  
+
   function applyStaticTranslations() {
     document.documentElement.lang = state.lang === 'mz' ? 'lus' : 'en';
-    document.querySelectorAll('[data-i18n]').forEach((node) => {
+    els.i18nNodes.forEach((node) => {
       const key = node.getAttribute('data-i18n');
       if (key) node.textContent = t(key);
     });
@@ -426,6 +467,7 @@
 
   function setLanguage(lang) {
     if (lang !== 'mz' && lang !== 'en') return;
+    if (lang === state.lang) return;
     state.lang = lang;
     localStorage.setItem('ca_lang', lang);
     applyStaticTranslations();
@@ -438,11 +480,13 @@
     localStorage.setItem('ca_theme', next);
     document.documentElement.classList.add('theme-switching');
     document.documentElement.setAttribute('data-theme', next);
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) metaTheme.setAttribute('content', next === 'dark' ? '#06090c' : '#eef4f5');
-    void document.documentElement.offsetHeight;
+    if (els.metaTheme) {
+      els.metaTheme.setAttribute('content', next === 'dark' ? '#06090c' : '#eef4f5');
+    }
     requestAnimationFrame(() => {
-      document.documentElement.classList.remove('theme-switching');
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove('theme-switching');
+      });
     });
   }
 
@@ -476,7 +520,7 @@
   }
 
   function renderVersionMenu() {
-    els.versionMenu.innerHTML = '';
+    const frag = document.createDocumentFragment();
     state.releases.forEach((rel, idx) => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -511,11 +555,13 @@
         renderAll();
       });
 
-      els.versionMenu.appendChild(btn);
+      frag.appendChild(btn);
     });
+    els.versionMenu.replaceChildren(frag);
   }
 
   function closeVersionMenu() {
+    if (els.versionMenu.hidden) return;
     els.versionMenu.hidden = true;
     els.versionTrigger.setAttribute('aria-expanded', 'false');
   }
@@ -528,16 +574,16 @@
       return aModern - bModern;
     });
 
-    els.downloadDeck.innerHTML = '';
-
     if (apkAssets.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'guide-box';
       empty.style.gridColumn = '1 / -1';
       empty.textContent = t('noAssets');
-      els.downloadDeck.appendChild(empty);
+      els.downloadDeck.replaceChildren(empty);
       return;
     }
+
+    const frag = document.createDocumentFragment();
 
     apkAssets.forEach((asset, index) => {
       const info = classifyAsset(asset);
@@ -584,8 +630,10 @@
         startDownloadSequence(asset, release);
       });
 
-      els.downloadDeck.appendChild(card);
+      frag.appendChild(card);
     });
+
+    els.downloadDeck.replaceChildren(frag);
   }
 
   function renderChangelog(release) {
@@ -611,22 +659,22 @@
 
     els.changelogSourceTag.textContent = sourceText;
     els.changelogVersionPill.textContent = release.tag_name || '--';
-    els.changelogList.innerHTML = '';
 
+    const frag = document.createDocumentFragment();
     if (entries.length === 0) {
       const li = document.createElement('li');
       li.className = 'changelog-item';
       li.textContent = t('changelogEmpty');
-      els.changelogList.appendChild(li);
-      return;
+      frag.appendChild(li);
+    } else {
+      entries.forEach((text) => {
+        const li = document.createElement('li');
+        li.className = 'changelog-item';
+        li.textContent = text;
+        frag.appendChild(li);
+      });
     }
-
-    entries.forEach((text) => {
-      const li = document.createElement('li');
-      li.className = 'changelog-item';
-      li.textContent = text;
-      els.changelogList.appendChild(li);
-    });
+    els.changelogList.replaceChildren(frag);
   }
 
   function renderAll() {
@@ -651,18 +699,21 @@
   class ReactorCanvasEngine {
     constructor(canvas) {
       this.canvas = canvas;
-      this.ctx = canvas.getContext('2d');
+      this.ctx = canvas.getContext('2d', { alpha: true });
       this.rafId = null;
+      this.lastTime = 0;
       this.particles = [];
       this.shockwaves = [];
       this.mode = 'idle';
       this.progress = 0;
+      this.particleCount = IS_TOUCH_DEVICE ? 48 : 72;
       this.resize();
       this.seedParticles();
     }
 
     resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const maxDpr = IS_TOUCH_DEVICE ? 1.5 : 2;
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
       const rect = this.canvas.getBoundingClientRect();
       const w = rect.width || 300;
       const h = rect.height || 300;
@@ -677,7 +728,7 @@
 
     seedParticles() {
       this.particles = [];
-      for (let i = 0; i < 72; i++) {
+      for (let i = 0; i < this.particleCount; i++) {
         this.particles.push(this.createParticle(Math.random()));
       }
     }
@@ -739,8 +790,11 @@
     start() {
       if (this.rafId) return;
       this.resize();
-      const loop = () => {
-        this.draw();
+      this.lastTime = 0;
+      const loop = (now) => {
+        const dt = this.lastTime ? Math.min(2.4, (now - this.lastTime) / 16.667) : 1;
+        this.lastTime = now;
+        this.draw(dt);
         this.rafId = requestAnimationFrame(loop);
       };
       this.rafId = requestAnimationFrame(loop);
@@ -751,17 +805,18 @@
         cancelAnimationFrame(this.rafId);
         this.rafId = null;
       }
+      this.lastTime = 0;
       this.ctx.clearRect(0, 0, this.w, this.h);
     }
 
-    draw() {
+    draw(dt) {
       const ctx = this.ctx;
       ctx.clearRect(0, 0, this.w, this.h);
 
       for (let i = this.shockwaves.length - 1; i >= 0; i--) {
         const sw = this.shockwaves[i];
-        sw.r += 3.2;
-        sw.alpha *= 0.93;
+        sw.r += 3.2 * dt;
+        sw.alpha *= Math.pow(0.93, dt);
         ctx.beginPath();
         ctx.arc(this.cx, this.cy, sw.r, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(${sw.color}, ${sw.alpha})`;
@@ -774,11 +829,13 @@
 
       if (this.mode === 'active') {
         const boost = 1 + (this.progress / 100) * 1.9;
+        const inwardBoost = 0.7 + (this.progress / 100) * 1.2;
+        ctx.lineCap = 'round';
         for (const p of this.particles) {
           const prevX = this.cx + Math.cos(p.angle) * p.radius;
           const prevY = this.cy + Math.sin(p.angle) * p.radius;
-          p.angle += p.baseSpeed * boost;
-          p.radius -= p.inward * (0.7 + (this.progress / 100) * 1.2);
+          p.angle += p.baseSpeed * boost * dt;
+          p.radius -= p.inward * inwardBoost * dt;
           if (p.radius < 62) {
             p.radius = maxR;
             p.angle = Math.random() * Math.PI * 2;
@@ -792,7 +849,6 @@
           ctx.lineTo(nx, ny);
           ctx.strokeStyle = `rgba(0, 226, 206, ${p.alpha * fade * 0.72})`;
           ctx.lineWidth = p.size;
-          ctx.lineCap = 'round';
           ctx.stroke();
         }
         return;
@@ -804,12 +860,15 @@
           ? '239, 68, 68'
           : '245, 158, 11';
 
+      const drag = Math.pow(0.955, dt);
+      const decay = Math.pow(0.968, dt);
+
       for (const p of this.particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.955;
-        p.vy *= 0.955;
-        p.alpha *= 0.968;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vx *= drag;
+        p.vy *= drag;
+        p.alpha *= decay;
         if (p.alpha < 0.02) continue;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -821,6 +880,14 @@
 
   const reactor = new ReactorCanvasEngine(els.reactorCanvas);
 
+  function cancelPendingProgressFrame() {
+    if (progressRafId) {
+      cancelAnimationFrame(progressRafId);
+      progressRafId = null;
+    }
+    pendingProgressFrame = null;
+  }
+
   function revokeActiveBlob() {
     if (state.blobUrl) {
       URL.revokeObjectURL(state.blobUrl);
@@ -828,7 +895,7 @@
     }
   }
 
-  function setReactorProgress(pct, receivedBytes, totalBytes, speedText) {
+  function applyReactorProgress(pct, receivedBytes, totalBytes, speedText) {
     const clamped = Math.max(0, Math.min(100, pct));
     reactor.progress = clamped;
     const offset = RING_CIRCUMFERENCE * (1 - clamped / 100);
@@ -850,7 +917,26 @@
     }
   }
 
+  function setReactorProgress(pct, receivedBytes, totalBytes, speedText, immediate = false) {
+    if (immediate) {
+      cancelPendingProgressFrame();
+      applyReactorProgress(pct, receivedBytes, totalBytes, speedText);
+      return;
+    }
+    pendingProgressFrame = { pct, receivedBytes, totalBytes, speedText };
+    if (progressRafId) return;
+    progressRafId = requestAnimationFrame(() => {
+      progressRafId = null;
+      const frame = pendingProgressFrame;
+      pendingProgressFrame = null;
+      if (frame) {
+        applyReactorProgress(frame.pct, frame.receivedBytes, frame.totalBytes, frame.speedText);
+      }
+    });
+  }
+
   function setReactorUiState(mode, titleText, subText) {
+    if (mode !== 'active') cancelPendingProgressFrame();
     state.downloadState = mode;
     els.reactorModal.classList.remove('state-active', 'state-success', 'state-error', 'state-cancelled');
     els.reactorModal.classList.add(`state-${mode}`);
@@ -882,6 +968,7 @@
     if (state.downloadState === 'active') {
       cancelActiveDownload();
     }
+    cancelPendingProgressFrame();
     els.reactorOverlay.classList.remove('open');
     els.reactorOverlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('modal-open');
@@ -890,7 +977,7 @@
         reactor.stop();
         revokeActiveBlob();
       }
-    }, 300);
+    }, 280);
   }
 
   function triggerFileSave(url, filename) {
@@ -904,6 +991,7 @@
   }
 
   function cancelActiveDownload() {
+    cancelPendingProgressFrame();
     if (state.abortController) {
       state.abortController.abort();
       state.abortController = null;
@@ -918,10 +1006,11 @@
       state.abortController.abort();
       state.abortController = null;
     }
+    cancelPendingProgressFrame();
     revokeActiveBlob();
 
     openReactorModal(asset, release);
-    setReactorProgress(0, 0, asset.size, '');
+    setReactorProgress(0, 0, asset.size, '', true);
     setReactorUiState('active', t('titleActive'), t('stageConnect'));
 
     if (!navigator.onLine) {
@@ -935,7 +1024,7 @@
     }
 
     if (!hasValidProxy()) {
-      setReactorProgress(100, asset.size || 0, asset.size || 0, '');
+      setReactorProgress(100, asset.size || 0, asset.size || 0, '', true);
       setReactorUiState('success', t('titleSuccess'), t('subDirectFallback'));
       triggerFileSave(asset.browser_download_url, asset.name);
       return;
@@ -993,7 +1082,7 @@
 
       els.reactorStatusSub.textContent = t('stageSaving');
       const finalTotal = totalBytes || receivedBytes;
-      setReactorProgress(100, finalTotal, finalTotal, '');
+      setReactorProgress(100, finalTotal, finalTotal, '', true);
 
       const blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
       state.blobUrl = URL.createObjectURL(blob);
@@ -1032,7 +1121,7 @@
   });
 
   document.addEventListener('click', (e) => {
-    if (!els.versionPicker.contains(e.target)) {
+    if (!els.versionMenu.hidden && !els.versionPicker.contains(e.target)) {
       closeVersionMenu();
     }
   });
@@ -1062,11 +1151,12 @@
     }
   });
 
+  let resizeTimer = null;
   window.addEventListener('resize', () => {
-    if (els.reactorOverlay.classList.contains('open')) {
-      reactor.resize();
-    }
-  });
+    if (!els.reactorOverlay.classList.contains('open')) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => reactor.resize(), 120);
+  }, { passive: true });
 
   function focusChangelogIfRequested(force) {
     const hash = window.location.hash.toLowerCase();
@@ -1082,8 +1172,9 @@
     requestAnimationFrame(() => {
       card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       card.classList.remove('spotlight');
-      void card.offsetWidth;
-      card.classList.add('spotlight');
+      requestAnimationFrame(() => {
+        card.classList.add('spotlight');
+      });
       setTimeout(() => {
         card.classList.remove('spotlight');
       }, 2500);
