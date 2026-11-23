@@ -6,24 +6,29 @@
   <title>CA Movies — Download APK</title>
   <meta name="description" content="Download CA Movies APK for Android. Watch Mizo Dubbed and Subtitled Movies & Series." />
   <meta name="theme-color" content="#06090c" />
+  <link rel="dns-prefetch" href="https://camovies-dl.camoviesmizo.workers.dev" />
+  <link rel="preconnect" href="https://camovies-dl.camoviesmizo.workers.dev" crossorigin />
+  <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
+  <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script>
     (function () {
-      var savedTheme = localStorage.getItem('ca_theme');
-      if (savedTheme === 'light' || savedTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-        document.documentElement.setAttribute('data-theme', 'light');
+      var theme = localStorage.getItem('ca_theme');
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
       }
+      document.documentElement.setAttribute('data-theme', theme);
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'dark' ? '#06090c' : '#eef4f5');
       var savedLang = localStorage.getItem('ca_lang');
       if (savedLang === 'mz' || savedLang === 'en') {
         document.documentElement.setAttribute('data-lang', savedLang);
       }
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <div class="ambient-scene" aria-hidden="true">
@@ -92,8 +97,8 @@
           </div>
         </div>
 
-        <h1 class="hero-title" data-i18n="heroTitle">Cinema in Your Pocket</h1>
-        <p class="hero-desc" data-i18n="heroDesc">Stream Mizo Dubbed &amp; Subtitled Movies and Series seamlessly on Android with fast playback and instant updates.</p>
+        <h1 class="hero-title" data-i18n="heroTitle">Download CA Movies</h1>
+        <p class="hero-desc" data-i18n="heroDesc">Stream Mizo Dubbed &amp; Subtitled Movies and Series effortlessly on Android.</p>
 
         <div class="meta-strip">
           <div class="meta-chip">
@@ -209,7 +214,7 @@
     <div class="reactor-modal" id="reactorModal">
       <div class="reactor-top">
         <div class="reactor-file-meta">
-          <span class="reactor-badge mono" id="reactorVerBadge">v1.0.8</span>
+          <span class="reactor-badge mono" id="reactorVerBadge">Latest</span>
           <span class="reactor-filename mono" id="reactorFilename">app-arm64-v8a-release.apk</span>
         </div>
         <button type="button" class="reactor-close-x" id="reactorCloseX" aria-label="Close">
@@ -269,7 +274,7 @@
           </svg>
 
           <svg class="state-glyph glyph-cancelled" viewBox="0 0 64 64" fill="none">
-            <path d="M21 21L43 43M43 21L21 43" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            <path d="M21 21L43 43M43 21L21 43" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" />
           </svg>
         </div>
       </div>
@@ -283,12 +288,12 @@
       <div class="reactor-actions" id="reactorActions">
         <button type="button" class="btn-reactor btn-cancel" id="reactorCancelBtn" data-i18n="btnCancel">Cancel</button>
         <button type="button" class="btn-reactor btn-retry" id="reactorRetryBtn" data-i18n="btnRetry" hidden>Try Again</button>
-        <a class="btn-reactor btn-direct" id="reactorDirectLink" href="#" hidden data-i18n="btnDirect">Direct Download</a>
+        <a class="btn-reactor btn-direct" id="reactorDirectLink" href="#" hidden data-i18n="btnDirect">Save Again</a>
         <button type="button" class="btn-reactor btn-done" id="reactorDoneBtn" data-i18n="btnDone" hidden>Done</button>
       </div>
     </div>
   </div>
 
-  <script src="app.js?v=5" defer></script>
+  <script src="app.js?v=6" defer></script>
 </body>
 </html>
